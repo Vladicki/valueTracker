@@ -267,6 +267,7 @@ class OnboardingViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
+                // Onboarding persists answers before the completion flag so the app never skips setup with an empty profile.
                 userPrefsDataStore.saveOnboardingAnswers(_uiState.value.answers)
                 profileRepository.saveUserProfile(
                     UserProfile(

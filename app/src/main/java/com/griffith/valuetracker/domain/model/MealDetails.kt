@@ -21,6 +21,7 @@ data class MealDetails(
     val secondaryNutrients: List<SecondaryNutrient> = emptyList(),
 ) {
     val calculatedCalories: Int
+        // Oil calories are added after portion scaling so the slider only affects the extra oil, not the whole recipe.
         get() = (baseCalories * servings).toInt() + (addedOilGrams * 9)
 
     val calculatedProteinGrams: Int
@@ -30,6 +31,7 @@ data class MealDetails(
         get() = (baseCarbsGrams * servings).toInt()
 
     val calculatedFatGrams: Int
+        // Added oil counts as pure fat, so it bypasses the base ingredient scaling.
         get() = (baseFatGrams * servings).toInt() + addedOilGrams
 
     val calculatedIngredients: List<CalculatedIngredient>

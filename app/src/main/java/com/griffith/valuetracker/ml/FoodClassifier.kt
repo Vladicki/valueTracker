@@ -28,6 +28,7 @@ class FoodClassifier(private val context: Context) {
             tflite.run(inputBuffer, output)
 
             val scores = output[0]
+            // Model ships without a label map here, so raw indices and scores are returned for inspection.
             val topResults = scores.withIndex()
                 .sortedByDescending { indexedValue -> indexedValue.value }
                 .take(min(5, scores.size))

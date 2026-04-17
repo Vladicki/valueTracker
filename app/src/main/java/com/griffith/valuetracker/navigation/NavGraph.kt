@@ -81,6 +81,7 @@ fun NavGraph(
         .map<Boolean, Boolean?> { it }
         .collectAsState(initial = null)
 
+    // Wait for DataStore before choosing a start route so the app does not flash the wrong flow on launch.
     if (isOnboardingCompleted == null) {
         Box(modifier = Modifier.fillMaxSize())
         return
@@ -141,6 +142,7 @@ private fun ValueTrackerShell() {
             launchSingleTop = true
             restoreState = true
             popUpTo(shellNavController.graph.startDestinationId) {
+                // Keep each top-level tab alive so switching tabs does not reset partially edited screens.
                 saveState = true
             }
         }
@@ -321,6 +323,7 @@ private fun ValueTrackerShell() {
                 }
                 if (state.isLogged) {
                     shellNavController.navigate(NavRoutes.Home.route) {
+                        // Returning to Home keeps the just-logged meal visible in history instead of stacking another details screen.
                         popUpTo(NavRoutes.Home.route) { inclusive = false }
                         launchSingleTop = true
                     }

@@ -254,6 +254,7 @@ class HomeViewModel(
 ) : ViewModel() {
     private val todayCutoff = currentDayStartMillis()
 
+    // Home reads both summary and recent meals from history snapshots so edits and deletes stay in sync with the daily totals.
     val uiState: StateFlow<HomeUiState> = combine(
         nutritionRepository.observeDailySummarySince(todayCutoff),
         nutritionRepository.observeMealHistorySince(todayCutoff),

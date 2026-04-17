@@ -142,6 +142,7 @@ data class FoodPortionEntity(
     val gramWeight: Float,
 )
 
+// Meal history stores immutable snapshots so later recipe edits do not rewrite past nutrition logs.
 @Entity(tableName = "meal_history")
 data class MealHistoryEntity(
     @PrimaryKey(autoGenerate = true) val historyId: Long = 0,
@@ -581,6 +582,7 @@ private fun loadFoods(file: File, limit: Int): List<FoodRow> {
 }
 
 private fun loadNutrientLookup(file: File): Map<Long, String> {
+    // USDA nutrient names vary from app labels, so seeding normalizes them once into stable internal keys.
     val lookup = mutableMapOf<Long, String>()
     file.bufferedReader().useLines { lines ->
         val iterator = lines.iterator()
@@ -596,6 +598,7 @@ private fun loadNutrientLookup(file: File): Map<Long, String> {
             val name = columns.getOrNull(nameIndex).orEmpty()
             val unit = columns.getOrNull(unitIndex).orEmpty()
             val normalizedName = name.lowercase()
+            // USDA nutrient names are noisy, so seeding normalizes only the labels this app can render and query later.
             val key = when {
                 normalizedName == "protein" -> "protein"
                 normalizedName == "carbohydrate, by difference" -> "carbs"
@@ -671,6 +674,7 @@ private fun loadPortions(
     file: File,
     targetIds: Set<Long>,
 ): Map<Long, Float> {
+    // First portion wins here so each food gets one stable default gram weight instead of many competing serving sizes.
     val portions = mutableMapOf<Long, Float>()
     file.bufferedReader().useLines { lines ->
         val iterator = lines.iterator()
@@ -706,6 +710,7 @@ class DatabaseFoodRepository(
         mealDetailDao.findByBucket("history").map { it.toMeal() }
 
     override suspend fun getMealDetails(mealId: Long): MealDetails {
+        // Prefer locally edited details first, then seeded food rows, then ad-hoc search imports as the last fallback.
         val savedDetail = mealDetailDao.findByMealId(mealId)
         if (savedDetail != null) {
             return savedDetail.toMealDetails(mealIngredientDao.findByMealId(mealId).map { it.toIngredient() })
@@ -755,6 +760,7 @@ class DatabaseFoodRepository(
         }
         allFoodDao.setSaved(mealId, isBookmarked)
         if (allFoodDao.findById(mealId) == null && isBookmarked) {
+            // Imported search rows are not always seeded locally yet, so bookmarking backfills a minimal record for saved-food flows.
             val imported = foodSearchDao.findFoodById(mealId)
             if (imported != null) {
                 allFoodDao.upsertAll(
@@ -881,6 +887,7 @@ class DatabaseNutritionRepository(
         observeDailySummarySince(0)
 
     override fun observeDailySummarySince(cutoff: Long): Flow<DailySummary> =
+        // Daily totals come from meal history because it reflects edits, deletions, and final logged portions.
         mealHistoryDao.observeSince(cutoff).map { rows ->
             val profile = profileDao.get()?.toDomain() ?: UserProfile()
             val totalCalories = rows.sumOf { it.calories }
@@ -1331,12 +1338,14 @@ private fun UserProfile.toEntity() = UserProfileEntity(
 )
 
 fun parseNutrientAmount(summary: String, nutrientName: String): Float {
+    // Search rows flatten nutrients into one string, so detail hydration has to recover exact values by label.
     val prefix = "$nutrientName: "
     val segment = summary.split(" | ").firstOrNull { it.startsWith(prefix) } ?: return 0f
     return segment.removePrefix(prefix).substringBefore(' ').toFloatOrNull() ?: 0f
 }
 
 private fun parseCsvRow(line: String): List<String> {
+    // USDA CSV files contain quoted commas, so naive split(',') would corrupt names and nutrients.
     val values = mutableListOf<String>()
     val current = StringBuilder()
     var inQuotes = false

@@ -172,6 +172,7 @@ class FoodViewModel(
     }
 
     fun updateQuery(query: String) {
+        // Saved meals filter locally, while catalog search is async and token-guarded against stale responses.
         _uiState.update { state ->
             state.copy(
                 query = query,

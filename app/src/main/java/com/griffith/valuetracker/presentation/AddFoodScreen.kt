@@ -96,6 +96,7 @@ class AddFoodViewModel(
 
     fun updateQuery(query: String) {
         _uiState.update { it.copy(query = query) }
+        // Newer searches can finish before older ones, so this token guards against stale results flashing in the list.
         val searchToken = ++latestSearchToken
         viewModelScope.launch {
             val suggestions = if (query.isBlank()) emptyList() else foodRepository.searchFoods(query)

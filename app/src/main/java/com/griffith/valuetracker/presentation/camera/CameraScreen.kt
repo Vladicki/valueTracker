@@ -163,6 +163,7 @@ class CameraViewModel : ViewModel() {
         onSuccess: (Uri) -> Unit,
         onError: (String) -> Unit,
     ) {
+        // Photos are written into app storage first so preview and later logging work without keeping CameraX temp handles alive.
         val outputDirectory = File(context.filesDir, "camera_photos").apply {
             if (!exists()) mkdirs()
         }

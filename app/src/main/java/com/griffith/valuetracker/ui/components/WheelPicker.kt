@@ -54,6 +54,7 @@ fun WheelPicker(
     }
 
     LaunchedEffect(listState, items.size) {
+        // Snap fling keeps one row aligned at the top, so the first visible item becomes the selection source of truth.
         snapshotFlow { listState.firstVisibleItemIndex }
             .map { index -> index.coerceIn(0, items.lastIndex) }
             .distinctUntilChanged()

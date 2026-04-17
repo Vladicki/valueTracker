@@ -695,6 +695,7 @@ class FoodDetailsViewModel(
                 }
             }.onSuccess { details ->
                 val mergedDetails = if (initialMeal != null && !isEditingHistoryMeal) {
+                    // Search results can carry fresher macros than the seeded catalog, so preserve the tapped card values on first open.
                     details.copy(
                         title = initialMeal.title,
                         baseCalories = initialMeal.calories,
@@ -706,6 +707,7 @@ class FoodDetailsViewModel(
                 } else {
                     details
                 }
+                // Portion preference only applies to catalog foods. History edits must preserve the logged snapshot instead.
                 val portionPreference = if (!isEditingHistoryMeal) foodRepository.getPortionPreference(mealId) else null
                 hasSavedPortionPreference = portionPreference != null
                 val basePortion = mergedDetails.mealType.removeSuffix(" g").toFloatOrNull() ?: DEFAULT_PORTION_GRAMS
@@ -735,6 +737,7 @@ class FoodDetailsViewModel(
     fun stepPortionSize(increase: Boolean) {
         _uiState.update { state ->
             val meal = state.mealDetails ?: return@update state
+            // Servings stay as the canonical value, so gram mode converts its step into serving fractions.
             val step = if (state.portionMode == PortionMode.Grams) GRAM_STEP / 100f else PORTION_STEP
             val next = if (increase) meal.servings + step else (meal.servings - step).coerceAtLeast(1f)
             state.copy(mealDetails = meal.copy(servings = next))
@@ -832,6 +835,7 @@ class FoodDetailsViewModel(
             val details = _uiState.value.mealDetails ?: return@launch
             val portionGrams = currentPortionGrams(details)
             if (!isEditingHistoryMeal && !hasSavedPortionPreference && portionGrams != DEFAULT_PORTION_GRAMS) {
+                // Ask once before logging so later quick-adds can reuse the same portion without another prompt.
                 _uiState.update { it.copy(showPortionPreferenceDialog = true) }
                 return@launch
             }
@@ -881,6 +885,7 @@ class FoodDetailsViewModel(
             imageUrl = details.imageUrl,
         )
         val ingredients = details.ingredients.map { ingredient ->
+            // Persist the fully scaled ingredient snapshot so edited history meals round-trip without recomputing from the original recipe.
             LoggedIngredientInput(
                 ingredientTitle = ingredient.name,
                 ingredientFdcId = null,
@@ -919,6 +924,7 @@ class FoodDetailsViewModel(
     }
 
     private fun currentPortionGrams(details: MealDetails): Float =
+        // Meal type doubles as the stored base portion label, so logging derives actual grams from that label plus servings.
         details.mealType.removeSuffix(" g").toFloatOrNull()?.times(details.servings) ?: (DEFAULT_PORTION_GRAMS * details.servings)
 
     fun deleteMeal() {
