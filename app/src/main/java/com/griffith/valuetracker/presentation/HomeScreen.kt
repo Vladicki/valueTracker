@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -46,16 +44,22 @@ import com.griffith.valuetracker.domain.model.DailySummary
 import com.griffith.valuetracker.domain.model.Meal
 import com.griffith.valuetracker.ui.components.CalorieRing
 import com.griffith.valuetracker.ui.components.DateSwitcher
+import com.griffith.valuetracker.ui.components.DaySelector
 import com.griffith.valuetracker.ui.components.FadeInScreen
 import com.griffith.valuetracker.ui.components.MacroInlineText
 import com.griffith.valuetracker.ui.components.MacroProgressBar
-import com.griffith.valuetracker.ui.components.StatsCard
+import com.griffith.valuetracker.ui.components.dayLabel
+import com.griffith.valuetracker.ui.components.startOfDayMillis
+import com.griffith.valuetracker.ui.components.weekStart
 import com.griffith.valuetracker.ui.theme.AppCarbs
 import com.griffith.valuetracker.ui.theme.AppFat
 import com.griffith.valuetracker.ui.theme.AppProtein
+import java.time.LocalDate
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -72,6 +76,9 @@ fun HomeScreen(
         state = state,
         onEditMeal = onEditMeal,
         onRemoveMeal = onRemoveMeal,
+        onDaySelected = viewModel::onDaySelected,
+        onPreviousWeekClick = viewModel::selectPreviousWeek,
+        onNextWeekClick = if (state.canSelectNextWeek) viewModel::selectNextWeek else null,
     )
 }
 
@@ -80,6 +87,9 @@ fun HomeScreen(
     state: HomeUiState,
     onEditMeal: (Meal) -> Unit,
     onRemoveMeal: (Long) -> Unit,
+    onDaySelected: (LocalDate) -> Unit,
+    onPreviousWeekClick: () -> Unit,
+    onNextWeekClick: (() -> Unit)?,
 ) {
     if (state.isLoading) {
         Box(
@@ -109,16 +119,16 @@ fun HomeScreen(
                 )
             }
             item {
-                WeeklyGoalsStrip(
-                    days = state.weeklyGoalDays,
-                    selectedLabel = state.selectedDayLabel,
+                DaySelector(
+                    selectedDate = state.selectedDate,
+                    onDaySelected = onDaySelected,
+                    onPreviousWeekClick = onPreviousWeekClick,
+                    onNextWeekClick = onNextWeekClick,
                 )
             }
             item {
                 DateSwitcher(
                     dateText = state.selectedDayLabel,
-                    onPreviousClick = {},
-                    onNextClick = {},
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -135,61 +145,23 @@ fun HomeScreen(
             }
             item {
                 Text(
-                    text = "Recent Meals",
+                    text = "Meals",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                 )
             }
-            if (state.recentMeals.isEmpty()) {
+            if (state.selectedDayMeals.isEmpty()) {
                 item {
-                    EmptyMealsCard()
+                    EmptyMealsCard(state.selectedDayLabel)
                 }
             } else {
-                items(state.recentMeals, key = { it.id }) { meal ->
+                items(state.selectedDayMeals, key = { it.id }) { meal ->
                     RecentMealCard(
                         meal = meal,
                         onEditMeal = onEditMeal,
                         onRemoveMeal = onRemoveMeal,
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun WeeklyGoalsStrip(
-    days: List<Int>,
-    selectedLabel: String,
-) {
-    val labels = listOf("F", "S", "S", "M", "T", "W", "T")
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        days.forEachIndexed { index, day ->
-            val selected = selectedLabel == "Today" && index == days.lastIndex
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(
-                            if (selected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surfaceVariant,
-                            CircleShape,
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = day.toString(),
-                        color = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = labels.getOrElse(index) { "" },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
     }
@@ -215,7 +187,7 @@ private fun EnergyAndMacroSummary(
 }
 
 @Composable
-private fun EmptyMealsCard() {
+private fun EmptyMealsCard(selectedDayLabel: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -226,7 +198,7 @@ private fun EmptyMealsCard() {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "No meals logged today",
+                text = "No meals logged for $selectedDayLabel",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -242,31 +214,36 @@ private fun EmptyMealsCard() {
 
 data class HomeUiState(
     val isLoading: Boolean = true,
-    val summary: DailySummary = DailySummary(0, 0, 0, 0, 0, 0, 0, 0, 0f, 0f, 0f, 0),
-    val recentMeals: List<Meal> = emptyList(),
+    val selectedDate: LocalDate = LocalDate.now(),
     val selectedDayLabel: String = "Today",
-    val weeklyGoalDays: List<Int> = emptyList(),
+    val canSelectNextWeek: Boolean = false,
+    val summary: DailySummary = DailySummary(0, 0, 0, 0, 0, 0, 0, 0, 0f, 0f, 0f, 0),
+    val selectedDayMeals: List<Meal> = emptyList(),
 )
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class HomeViewModel(
     private val nutritionRepository: NutritionRepository,
     profileRepository: ProfileRepository,
 ) : ViewModel() {
-    private val todayCutoff = currentDayStartMillis()
+    private val selectedDate = MutableStateFlow(LocalDate.now())
 
-    // Home reads both summary and recent meals from history snapshots so edits and deletes stay in sync with the daily totals.
-    val uiState: StateFlow<HomeUiState> = combine(
-        nutritionRepository.observeDailySummarySince(todayCutoff),
-        nutritionRepository.observeMealHistorySince(todayCutoff),
-        profileRepository.observeUserProfile(),
-    ) { summary, history, _ ->
-        HomeUiState(
-            isLoading = false,
-            summary = summary,
-            recentMeals = history,
-            selectedDayLabel = "Today",
-            weeklyGoalDays = (3..9).toList(),
-        )
+    val uiState: StateFlow<HomeUiState> = selectedDate.flatMapLatest { date ->
+        val dayStart = date.startOfDayMillis()
+        val nextDayStart = date.plusDays(1).startOfDayMillis()
+        combine(
+            nutritionRepository.observeDailySummaryBetween(dayStart, nextDayStart),
+            nutritionRepository.observeMealHistoryBetween(dayStart, nextDayStart),
+        ) { summary, history ->
+            HomeUiState(
+                isLoading = false,
+                selectedDate = date,
+                selectedDayLabel = dayLabel(date),
+                canSelectNextWeek = weekStart(date).isBefore(weekStart(LocalDate.now())),
+                summary = summary,
+                selectedDayMeals = history,
+            )
+        }
     }.onStart {
         emit(HomeUiState(isLoading = true))
     }.stateIn(
@@ -274,6 +251,21 @@ class HomeViewModel(
         started = SharingStarted.Eagerly,
         initialValue = HomeUiState(isLoading = true),
     )
+
+    fun onDaySelected(date: LocalDate) {
+        selectedDate.value = date
+    }
+
+    fun selectPreviousWeek() {
+        selectedDate.value = selectedDate.value.minusWeeks(1)
+    }
+
+    fun selectNextWeek() {
+        val nextWeekDate = selectedDate.value.plusWeeks(1)
+        if (!weekStart(nextWeekDate).isAfter(weekStart(LocalDate.now()))) {
+            selectedDate.value = nextWeekDate
+        }
+    }
 
     fun editMeal(meal: Meal) {
     }
@@ -384,7 +376,3 @@ private fun RecentMealCard(
     }
 }
 
-private fun currentDayStartMillis(): Long {
-    val now = java.time.LocalDate.now()
-    return now.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
-}

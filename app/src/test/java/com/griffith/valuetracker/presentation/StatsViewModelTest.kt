@@ -77,7 +77,9 @@ private class StatsFakeNutritionRepository(
     override fun observeMeals(): Flow<List<Meal>> = flowOf(emptyList())
     override fun observeDailySummary(): Flow<DailySummary> = flowOf(summary)
     override fun observeDailySummarySince(cutoff: Long): Flow<DailySummary> = flowOf(summary)
+    override fun observeDailySummaryBetween(startInclusive: Long, endExclusive: Long): Flow<DailySummary> = flowOf(summary)
     override fun observeMealHistorySince(cutoff: Long): Flow<List<Meal>> = flowOf(emptyList())
+    override fun observeMealHistoryBetween(startInclusive: Long, endExclusive: Long): Flow<List<Meal>> = flowOf(emptyList())
     override suspend fun getHistoryMealDetails(mealId: Long) = throw NotImplementedError()
     override suspend fun logHistory(input: LoggedMealInput) = Unit
     override suspend fun updateHistoryMeal(meal: Meal, ingredients: List<com.griffith.valuetracker.data.repository.LoggedIngredientInput>, portionGrams: Float) = Unit

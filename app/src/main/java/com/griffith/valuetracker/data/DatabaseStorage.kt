@@ -347,6 +347,7 @@ interface FoodSearchDao {
         LEFT JOIN nutrients n ON n.id = fn.nutrientId
         LEFT JOIN food_portions fp ON fp.fdcId = fi.fdcId
         WHERE fi.name LIKE '%' || :query || '%'
+          AND fi.dataType != 'branded_food'
         GROUP BY fi.fdcId, fi.name, fi.category, fp.gramWeight
         ORDER BY fi.name ASC
         LIMIT 100
@@ -390,6 +391,9 @@ interface MealHistoryDao {
 
     @Query("SELECT * FROM meal_history WHERE loggedAtEpochMillis >= :cutoff ORDER BY loggedAtEpochMillis DESC")
     fun observeSince(cutoff: Long): Flow<List<MealHistoryEntity>>
+
+    @Query("SELECT * FROM meal_history WHERE loggedAtEpochMillis >= :startInclusive AND loggedAtEpochMillis < :endExclusive ORDER BY loggedAtEpochMillis DESC")
+    fun observeBetween(startInclusive: Long, endExclusive: Long): Flow<List<MealHistoryEntity>>
 
     @Query("SELECT * FROM meal_history WHERE historyId = :mealId LIMIT 1")
     suspend fun findById(mealId: Long): MealHistoryEntity?
@@ -887,31 +891,38 @@ class DatabaseNutritionRepository(
         observeDailySummarySince(0)
 
     override fun observeDailySummarySince(cutoff: Long): Flow<DailySummary> =
-        // Daily totals come from meal history because it reflects edits, deletions, and final logged portions.
-        mealHistoryDao.observeSince(cutoff).map { rows ->
-            val profile = profileDao.get()?.toDomain() ?: UserProfile()
-            val totalCalories = rows.sumOf { it.calories }
-            val totalProtein = rows.sumOf { it.proteinGrams }
-            val totalCarbs = rows.sumOf { it.carbsGrams }
-            val totalFat = rows.sumOf { it.fatGrams }
-            DailySummary(
-                consumedCalories = totalCalories,
-                targetCalories = profile.targetCalories,
-                consumedProteinGrams = totalProtein,
-                targetProteinGrams = profile.targetProtein,
-                consumedCarbsGrams = totalCarbs,
-                targetCarbsGrams = profile.targetCarbs,
-                consumedFatGrams = totalFat,
-                targetFatGrams = profile.targetFat,
-                proteinProgress = if (profile.targetProtein > 0) totalProtein / profile.targetProtein.toFloat() else 0f,
-                carbsProgress = if (profile.targetCarbs > 0) totalCarbs / profile.targetCarbs.toFloat() else 0f,
-                fatProgress = if (profile.targetFat > 0) totalFat / profile.targetFat.toFloat() else 0f,
-                waterMl = 0,
-            )
-        }
+        mealHistoryDao.observeSince(cutoff).map(::toDailySummary)
+
+    override fun observeDailySummaryBetween(startInclusive: Long, endExclusive: Long): Flow<DailySummary> =
+        mealHistoryDao.observeBetween(startInclusive, endExclusive).map(::toDailySummary)
 
     override fun observeMealHistorySince(cutoff: Long): Flow<List<Meal>> =
         mealHistoryDao.observeSince(cutoff).map { rows -> rows.map { it.toMeal() } }
+
+    override fun observeMealHistoryBetween(startInclusive: Long, endExclusive: Long): Flow<List<Meal>> =
+        mealHistoryDao.observeBetween(startInclusive, endExclusive).map { rows -> rows.map { it.toMeal() } }
+
+    private suspend fun toDailySummary(rows: List<MealHistoryEntity>): DailySummary {
+        val profile = profileDao.get()?.toDomain() ?: UserProfile()
+        val totalCalories = rows.sumOf { it.calories }
+        val totalProtein = rows.sumOf { it.proteinGrams }
+        val totalCarbs = rows.sumOf { it.carbsGrams }
+        val totalFat = rows.sumOf { it.fatGrams }
+        return DailySummary(
+            consumedCalories = totalCalories,
+            targetCalories = profile.targetCalories,
+            consumedProteinGrams = totalProtein,
+            targetProteinGrams = profile.targetProtein,
+            consumedCarbsGrams = totalCarbs,
+            targetCarbsGrams = profile.targetCarbs,
+            consumedFatGrams = totalFat,
+            targetFatGrams = profile.targetFat,
+            proteinProgress = if (profile.targetProtein > 0) totalProtein / profile.targetProtein.toFloat() else 0f,
+            carbsProgress = if (profile.targetCarbs > 0) totalCarbs / profile.targetCarbs.toFloat() else 0f,
+            fatProgress = if (profile.targetFat > 0) totalFat / profile.targetFat.toFloat() else 0f,
+            waterMl = 0,
+        )
+    }
 
     override suspend fun getHistoryMealDetails(mealId: Long): MealDetails {
         val meal = mealHistoryDao.findById(mealId) ?: throw NoSuchElementException("History meal with id $mealId not found")

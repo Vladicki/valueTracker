@@ -33,7 +33,9 @@ interface NutritionRepository {
     fun observeMeals(): Flow<List<Meal>>
     fun observeDailySummary(): Flow<DailySummary>
     fun observeDailySummarySince(cutoff: Long): Flow<DailySummary>
+    fun observeDailySummaryBetween(startInclusive: Long, endExclusive: Long): Flow<DailySummary>
     fun observeMealHistorySince(cutoff: Long): Flow<List<Meal>>
+    fun observeMealHistoryBetween(startInclusive: Long, endExclusive: Long): Flow<List<Meal>>
     suspend fun getHistoryMealDetails(mealId: Long): MealDetails
     suspend fun logHistory(input: LoggedMealInput)
     suspend fun updateHistoryMeal(meal: Meal, ingredients: List<LoggedIngredientInput>, portionGrams: Float)

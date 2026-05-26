@@ -96,7 +96,7 @@ class HomeViewModelTest {
         val state = viewModel.uiState.value
         assertEquals(false, state.isLoading)
         assertEquals(1850, state.summary.consumedCalories)
-        assertEquals(listOf("Greek Yogurt", "Salmon Bowl", "Chicken Salad", "Oatmeal"), state.recentMeals.map { it.title })
+        assertEquals(listOf("Greek Yogurt", "Salmon Bowl", "Chicken Salad", "Oatmeal"), state.selectedDayMeals.map { it.title })
         assertEquals("Today", state.selectedDayLabel)
     }
 }
@@ -108,7 +108,9 @@ private class HomeFakeNutritionRepository(
     override fun observeMeals(): Flow<List<Meal>> = flowOf(meals)
     override fun observeDailySummary(): Flow<DailySummary> = flowOf(summary)
     override fun observeDailySummarySince(cutoff: Long): Flow<DailySummary> = flowOf(summary)
+    override fun observeDailySummaryBetween(startInclusive: Long, endExclusive: Long): Flow<DailySummary> = flowOf(summary)
     override fun observeMealHistorySince(cutoff: Long): Flow<List<Meal>> = flowOf(meals)
+    override fun observeMealHistoryBetween(startInclusive: Long, endExclusive: Long): Flow<List<Meal>> = flowOf(meals)
     override suspend fun getHistoryMealDetails(mealId: Long) = throw NotImplementedError()
     override suspend fun logHistory(input: LoggedMealInput) = Unit
     override suspend fun updateHistoryMeal(meal: Meal, ingredients: List<com.griffith.valuetracker.data.repository.LoggedIngredientInput>, portionGrams: Float) = Unit

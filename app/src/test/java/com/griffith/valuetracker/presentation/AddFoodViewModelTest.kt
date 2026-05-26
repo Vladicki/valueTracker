@@ -108,7 +108,11 @@ private class AddFoodFakeNutritionRepository : NutritionRepository {
     override fun observeDailySummarySince(cutoff: Long): Flow<DailySummary> = flowOf(
         DailySummary(0, 2200, 0, 0, 0, 0, 0, 0, 0f, 0f, 0f, 0),
     )
+    override fun observeDailySummaryBetween(startInclusive: Long, endExclusive: Long): Flow<DailySummary> = flowOf(
+        DailySummary(0, 2200, 0, 0, 0, 0, 0, 0, 0f, 0f, 0f, 0),
+    )
     override fun observeMealHistorySince(cutoff: Long): Flow<List<Meal>> = flowOf(emptyList())
+    override fun observeMealHistoryBetween(startInclusive: Long, endExclusive: Long): Flow<List<Meal>> = flowOf(emptyList())
     override suspend fun getHistoryMealDetails(mealId: Long) = throw NotImplementedError()
 
     override suspend fun logHistory(input: LoggedMealInput) {

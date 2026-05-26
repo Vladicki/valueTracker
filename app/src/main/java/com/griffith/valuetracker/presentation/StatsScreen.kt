@@ -22,13 +22,26 @@ import androidx.lifecycle.viewModelScope
 import com.griffith.valuetracker.data.repository.NutritionRepository
 import com.griffith.valuetracker.data.repository.ProfileRepository
 import com.griffith.valuetracker.domain.model.DailySummary
+import com.griffith.valuetracker.domain.model.Meal
 import com.griffith.valuetracker.domain.model.WeightEntry
+import com.griffith.valuetracker.ui.components.DateSwitcher
+import com.griffith.valuetracker.ui.components.DaySelector
+import com.griffith.valuetracker.ui.components.MealCard
 import com.griffith.valuetracker.ui.components.MacroProgressBar
 import com.griffith.valuetracker.ui.components.StatsCard
+import com.griffith.valuetracker.ui.components.dayLabel
+import com.griffith.valuetracker.ui.components.startOfDayMillis
+import com.griffith.valuetracker.ui.components.weekStart
+import com.griffith.valuetracker.ui.theme.AppCarbs
+import com.griffith.valuetracker.ui.theme.AppFat
+import com.griffith.valuetracker.ui.theme.AppProtein
+import java.time.LocalDate
 import java.util.Locale
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import org.koin.androidx.compose.koinViewModel
 
@@ -37,12 +50,20 @@ fun StatsScreen(
     viewModel: StatsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    StatsScreen(state = state)
+    StatsScreen(
+        state = state,
+        onDaySelected = viewModel::onDaySelected,
+        onPreviousWeekClick = viewModel::selectPreviousWeek,
+        onNextWeekClick = if (state.canSelectNextWeek) viewModel::selectNextWeek else null,
+    )
 }
 
 @Composable
 fun StatsScreen(
     state: StatsUiState,
+    onDaySelected: (LocalDate) -> Unit,
+    onPreviousWeekClick: () -> Unit,
+    onNextWeekClick: (() -> Unit)?,
 ) {
     if (state.isLoading) {
         Box(
@@ -75,10 +96,48 @@ fun StatsScreen(
             }
         }
         item {
+            DaySelector(
+                selectedDate = state.selectedDate,
+                onDaySelected = onDaySelected,
+                onPreviousWeekClick = onPreviousWeekClick,
+                onNextWeekClick = onNextWeekClick,
+            )
+        }
+        item {
+            DateSwitcher(
+                dateText = state.selectedDayLabel,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        item {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                MacroProgressBar("Protein", state.summary.consumedProteinGrams, state.summary.targetProteinGrams, com.griffith.valuetracker.ui.theme.AppProtein)
-                MacroProgressBar("Carbs", state.summary.consumedCarbsGrams, state.summary.targetCarbsGrams, com.griffith.valuetracker.ui.theme.AppCarbs)
-                MacroProgressBar("Fat", state.summary.consumedFatGrams, state.summary.targetFatGrams, com.griffith.valuetracker.ui.theme.AppFat)
+                MacroProgressBar("Protein", state.summary.consumedProteinGrams, state.summary.targetProteinGrams, AppProtein)
+                MacroProgressBar("Carbs", state.summary.consumedCarbsGrams, state.summary.targetCarbsGrams, AppCarbs)
+                MacroProgressBar("Fat", state.summary.consumedFatGrams, state.summary.targetFatGrams, AppFat)
+            }
+        }
+        item {
+            Text(
+                text = "Meals",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        }
+        if (state.selectedDayMeals.isEmpty()) {
+            item {
+                EmptyStatsMealsCard(state.selectedDayLabel)
+            }
+        } else {
+            items(state.selectedDayMeals, key = { it.id }) { meal ->
+                MealCard(
+                    title = meal.title,
+                    calories = meal.calories,
+                    proteinGrams = meal.proteinGrams,
+                    fatGrams = meal.fatGrams,
+                    carbsGrams = meal.carbsGrams,
+                    compact = true,
+                    onClick = {},
+                )
             }
         }
         item {
@@ -100,31 +159,71 @@ fun StatsScreen(
 
 data class StatsUiState(
     val isLoading: Boolean = true,
+    val selectedDate: LocalDate = LocalDate.now(),
+    val selectedDayLabel: String = "Today",
+    val canSelectNextWeek: Boolean = false,
     val summary: DailySummary = DailySummary(0, 0, 0, 0, 0, 0, 0, 0, 0f, 0f, 0f, 0),
+    val selectedDayMeals: List<Meal> = emptyList(),
     val weightPoints: List<WeightEntry> = emptyList(),
     val bmiLabel: String = "0.0",
 )
 
+@Composable
+private fun EmptyStatsMealsCard(selectedDayLabel: String) {
+    Text(
+        text = "No meals logged for $selectedDayLabel",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class StatsViewModel(
     nutritionRepository: NutritionRepository,
     profileRepository: ProfileRepository,
     initialWeights: List<WeightEntry> = emptyList(),
 ) : ViewModel() {
-    val uiState: StateFlow<StatsUiState> = combine(
-        nutritionRepository.observeDailySummarySince(0),
-        profileRepository.observeUserProfile(),
-    ) { summary, profile ->
-        val heightMeters = profile.heightCm / 100f
-        val bmi = if (heightMeters > 0f) profile.weightKg / (heightMeters * heightMeters) else 0f
-        StatsUiState(
-            isLoading = false,
-            summary = summary,
-            weightPoints = initialWeights,
-            bmiLabel = String.format(Locale.US, "%.1f", bmi),
-        )
+    private val selectedDate = MutableStateFlow(LocalDate.now())
+
+    val uiState: StateFlow<StatsUiState> = selectedDate.flatMapLatest { date ->
+        val dayStart = date.startOfDayMillis()
+        val nextDayStart = date.plusDays(1).startOfDayMillis()
+        combine(
+            nutritionRepository.observeDailySummaryBetween(dayStart, nextDayStart),
+            nutritionRepository.observeMealHistoryBetween(dayStart, nextDayStart),
+            profileRepository.observeUserProfile(),
+        ) { summary, meals, profile ->
+            val heightMeters = profile.heightCm / 100f
+            val bmi = if (heightMeters > 0f) profile.weightKg / (heightMeters * heightMeters) else 0f
+            StatsUiState(
+                isLoading = false,
+                selectedDate = date,
+                selectedDayLabel = dayLabel(date),
+                canSelectNextWeek = weekStart(date).isBefore(weekStart(LocalDate.now())),
+                summary = summary,
+                selectedDayMeals = meals,
+                weightPoints = initialWeights,
+                bmiLabel = String.format(Locale.US, "%.1f", bmi),
+            )
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = StatsUiState(isLoading = true),
     )
+
+    fun onDaySelected(date: LocalDate) {
+        selectedDate.value = date
+    }
+
+    fun selectPreviousWeek() {
+        selectedDate.value = selectedDate.value.minusWeeks(1)
+    }
+
+    fun selectNextWeek() {
+        val nextWeekDate = selectedDate.value.plusWeeks(1)
+        if (!weekStart(nextWeekDate).isAfter(weekStart(LocalDate.now()))) {
+            selectedDate.value = nextWeekDate
+        }
+    }
 }
