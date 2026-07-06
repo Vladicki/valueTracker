@@ -1,0 +1,312 @@
+Adobo
+Apple
+Apple pie
+Asado
+Avgolemono
+Avocado
+Avocado Toast
+Bacon Cheeseburger
+Bacon Omelette
+Baklava
+Banana
+Bandeja Paisa
+BBQ Chicken Pizza
+BBQ Pork Ribs
+Beef Chili
+Beef Stew
+Beef Stroganoff
+Beer
+Beet salad
+Bibimbap
+Bigos
+Biryani
+Black Beans
+Blooming Onion
+BLT Sandwich
+Blue Cheese
+Blueberry Pancakes
+Bobotie
+Boeuf Bourguignon
+Boxty
+Bread pudding
+Breakfast Burrito
+Brie
+Brown Rice
+Bulgogi
+Bunny Chow
+Burrata
+Burrito
+Butter Chicken
+Butter Garlic Naan
+Caesar salad
+California Roll
+Calzone
+Camembert
+Cannoli
+Cappuccino
+Caprese salad
+Caramel Popcorn
+Carrot cake
+Ceviche
+Char Siu
+Cheesecake
+Chicken Alfredo
+Chicken Burrito Bowl
+Chicken Kiev
+Chicken noodle soup
+Chicken Pot Pie
+Chicken Rogan Josh
+Chicken Satay
+Chicken Shawarma
+Chicken Souvlaki
+Chicken Tacos
+Chicken Tenders
+Chicken Tikka Masala
+Chickpeas
+Chimichurri Steak
+Chocolate Bar
+Chocolate cake
+Chocolate Chip Pancakes
+Chocolate mousse
+Chow Mein
+Churros
+Clam Chowder
+Club sandwich
+Cold Brew Coffee
+Congee
+Coq au Vin
+Corn Chips
+Country Fried Steak
+Couscous
+Crab cakes
+Creme brulee
+Croissant
+Crunchwrap
+Crêpes
+Cullen Skink
+Currywurst
+Dan Dan Noodles
+Deep Dish Pizza
+Dolmades
+Doner Kebab
+Doro Wat
+Double Cheeseburger
+Dragon Roll
+Egg McMuffin
+Eggs Benedict
+Egusi Soup
+Empanadas
+Enchilada Casserole
+Espresso
+Falafel
+Feijoada
+Feta
+Fettuccine
+Filet Mignon
+Fish Amok
+Fish and chips
+Fish Tacos
+Flank Steak
+Four Cheese Pizza
+French Fries
+French Onion Soup
+French Toast
+Fried calamari
+Fried Catfish
+Fried Chicken
+Fried Chicken Sandwich
+Frozen yogurt
+Fufu
+Funnel Cake
+General Tso's Chicken
+Glazed Donut
+Gnocchi
+Gouda
+Grapes
+Greek Salad
+Greek Yogurt Parfait
+Green Enchiladas
+Grilled Cheese Sandwich
+Grilled Salmon
+Guacamole
+Gummy Bears
+Gunkan Maki
+Gyoza
+Gyro
+Halloumi
+Hamburger
+Har Gow
+Harira
+Hash Browns
+Hawaiian Pizza
+Hot and sour soup
+Hot Dog
+Hot Pot
+Huevos rancheros
+Hummus and Pita
+Ice cream
+Indian Mattar Paneer
+Jajangmyeon
+Jalapeño Bites
+Jollof Rice
+Key Lime Pie
+Khichdi
+Kimchi
+Kiwi
+Knafeh
+Kofta
+Korean Fried Chicken
+Kung Pao Chicken
+Laksa
+Lamb Jalfrezi
+Lamb Kebab
+Lamb Tagine
+Lasagna
+Latte
+Lechon
+Lemon
+Lentil Soup
+Lentils
+Lime
+Lo Mein
+Loaded Nachos
+Lobster
+Lobster roll sandwich
+Lomo Saltado
+Maafe
+Macarons
+Mango
+Mango Sticky Rice
+Mapo Tofu
+Margarita
+Margherita Pizza
+Massaman Curry
+Matcha Latte
+Meatloaf
+Minestrone
+Miso soup
+Mochi
+Mojito
+Moussaka
+Mozzarella
+Mozzarella Sticks
+Mussels
+Nachos
+Nasi Goreng
+Nasi Lemak
+New York Strip Steak
+New York Style Pizza
+Oatmeal with Berries
+Octopus
+Omelette
+Onion Rings
+Orange
+Orange Chicken
+Osso Buco
+Oysters
+Pabellón Criollo
+Pad thai
+Paella
+Pancakes
+Pancit
+Panna cotta
+Parmesan
+Patatas Bravas
+Pavlova
+Peanut Butter Cups
+Peking Duck
+Pelmeni
+Penne
+Pepperoni Pizza
+Philly Cheesesteak
+Pho
+Pierogi
+Pineapple
+Pizza
+Popcorn
+Pork Tamales
+Porterhouse Steak
+Potato Chips
+Pozole Rojo
+Profiteroles
+Pulled Pork Sandwich
+Pumpkin pie
+Pupusa
+Quesadilla
+Quiche Lorraine
+Quinoa
+Ramen
+Ravioli
+Red velvet cake
+Red Wine
+Rendang
+Reuben Sandwich
+Ribeye Steak
+Rigatoni
+Risotto
+Ropa Vieja
+Sabich
+Salade Niçoise
+Salisbury Steak
+Salmon Fishcakes
+Salmon Nigiri
+Samosa
+Sardines
+Sarmale
+Sashimi
+Sauerbraten
+Scallops
+Seaweed salad
+Semla
+Shakshuka
+Shrimp
+Shrimp and grits
+Sinigang
+Sirloin Steak
+Siu Mai
+Skirt Steak
+Smoothie
+Soft Pretzel
+Spaghetti bolognese
+Spaghetti carbonara
+Spaghetti Puttanesca
+Spanakopita
+Spicy Chicken Sandwich
+Spicy Miso Ramen
+Spicy Tuna Roll
+Spinach Mushroom Omelette
+Sri Lankan Rice and Curry
+Stamppot
+Steak Frites
+Stegt Flæsk
+Sticky Toffee Pudding
+Strawberry
+Strawberry shortcake
+Sushi
+Suya
+T-Bone Steak
+Tacos
+Tacos al Pastor
+Tagine
+Takoyaki
+Taro Bubble Tea
+Temaki (Hand Roll)
+Thai Green Curry
+Thiéboudienne
+Tiramisu
+Tom Yum Soup
+Tomahawk Steak
+Tonkatsu
+Tortilla Española
+Tres Leches Cake
+Tuna Nigiri
+Vareniki
+Veggie Pizza
+Waffles
+Wagyu Steak
+Watermelon
+Wiener Schnitzel
+Wonton Soup
+Xiao Long Bao
+Zabaglione
+Éclairs

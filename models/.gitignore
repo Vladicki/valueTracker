@@ -1,0 +1,32 @@
+# Dataset & large files
+food-101/
+app/src/main/assets/food_db/
+*.zip
+*.tar.gz
+*.csv
+
+# Model checkpoints (can be large)
+*.keras
+*.h5
+*.pt
+*.pth
+
+# Jupyter
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.log
+
+
+# Cache files (typst temp)
+[0-9][0-9][0-9][0-9]
+**/[0-9][0-9][0-9][0-9]
+
+.journal
+#remove logs
+history_*.log
