@@ -90,61 +90,41 @@ The README imports the main explanatory and experimental figures already present
 
 ### CNN feature extraction
 
-![CNN overview](models/ML/docs/figures/cnn-overview.jpeg)
-
 CNNs learn hierarchical features by combining local convolutional filters, nonlinear activations, and downsampling operations. In this project, the pretrained backbone provides the majority of the feature extraction capacity, while the custom head maps the extracted representation to Food-101 classes.
 
 ### Convolution and stride
-
-![Convolution stride](models/ML/docs/figures/convolution-stride.svg)
 
 The classifier relies on convolutional feature extraction, where shared kernels scan across spatial regions. Strided operations and pooling reduce spatial resolution while increasing semantic abstraction.
 
 ### Max pooling
 
-![Max pooling](models/ML/docs/figures/maxpool.jpeg)
-
 Pooling layers reduce sensitivity to small translations and compress intermediate feature maps. This supports robustness when food is photographed from different viewpoints or with slightly shifted framing.
 
 ### Batch normalization
-
-![Batch normalization](models/ML/docs/figures/batchnorm-dlai.png)
 
 Batch normalization is used in the custom head and is also present throughout InceptionV3. During transfer learning, frozen backbone BatchNorm behaviour must be handled carefully because updating running statistics on a new dataset can destabilise pretrained representations.
 
 ### Inception module
 
-![Inception module](models/ML/docs/figures/inception-module.png)
-
 Inception-style blocks process visual information at multiple effective receptive fields. This is useful for food images because a single class can contain both small local details, such as grains or toppings, and larger global structures, such as circular pizzas or plated meals.
 
 ### Inception factorization
-
-![Inception factorization](models/ML/docs/figures/inception-factorization.png)
 
 InceptionV3 uses factorised convolutions to reduce computation while preserving representational capacity. This matters for deployment because a model intended for mobile use must balance accuracy, size, and latency.
 
 ### InceptionV3 training curves
 
-![InceptionV3 training curves](models/ML/docs/models/InceptionV3_1.0/InceptionV3_1.0_training_curves.png)
-
 The retained InceptionV3 experiments show stable transfer-learning behaviour. Validation accuracy improves substantially during training, then begins to plateau, which motivates early stopping and lower learning-rate fine-tuning.
 
 ### InceptionV3 confusion heatmap
-
-![InceptionV3 confusion heatmap](models/ML/docs/models/InceptionV3_1.0/InceptionV3_1.0_heatmap.png)
 
 The confusion heatmap supports per-class error analysis. Food classification errors tend to cluster between visually or semantically related foods rather than being uniformly random.
 
 ### EfficientNetV2-S training curves
 
-![EfficientNetV2-S training curves](models/ML/docs/models/EfficentNetV2S_1.0/EfficentNetV2S_1.0_training_curves.png)
-
 EfficientNetV2-S was retained as a stronger benchmark comparison. Its saved experiment artifacts show higher validation performance than the InceptionV3 family, although the Android application currently targets an InceptionV3 TFLite asset.
 
 ### EfficientNetV2-S confusion heatmap
-
-![EfficientNetV2-S confusion heatmap](models/ML/docs/models/EfficentNetV2S_1.0/EfficentNetV2S_1.0_heatmap.png)
 
 The EfficientNetV2-S heatmap is useful for comparing whether architecture improvements reduce the same class-confusion patterns or merely improve aggregate accuracy.
 
