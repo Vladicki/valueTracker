@@ -1,14 +1,15 @@
 # ValueTracker: Transfer Learning Food Classification for On-Device Nutrition Tracking
 
-![Training curves](models/food_graphs.svg)
-
-![Confusion heatmap](models/heatmap.svg)
-
 ValueTracker is a machine learning focused Android project for food image recognition and nutrition tracking. The project combines a transfer-learned convolutional neural network trained on Food-101 with a Kotlin Android application that performs local TensorFlow Lite inference from camera or gallery images.
 
 Primary ML goal: build, compare, and deploy a food classifier that can recognise 101 food categories from images and run inside a mobile nutrition workflow.
 
 Primary app goal: make image capture, prediction, nutrition lookup, and meal logging work as one local-first user flow.
+
+![Training curves](models/food_graphs.svg)
+
+![Confusion heatmap](models/heatmap.svg)
+
 
 ---
 
@@ -85,52 +86,6 @@ Core modelling assumptions:
 - Freezing the backbone stabilises early optimisation.
 - Partial unfreezing improves adaptation to Food-101 without fully destroying pretrained features.
 - Top-5 accuracy is important because food classes can be semantically and visually close.
-
----
-
-## Imported paper figures and experiment graphs
-
-The README imports the main explanatory and experimental figures already present in the thesis/paper materials under `models/ML/docs/`.
-
-### CNN feature extraction
-
-CNNs learn hierarchical features by combining local convolutional filters, nonlinear activations, and downsampling operations. In this project, the pretrained backbone provides the majority of the feature extraction capacity, while the custom head maps the extracted representation to Food-101 classes.
-
-### Convolution and stride
-
-The classifier relies on convolutional feature extraction, where shared kernels scan across spatial regions. Strided operations and pooling reduce spatial resolution while increasing semantic abstraction.
-
-### Max pooling
-
-Pooling layers reduce sensitivity to small translations and compress intermediate feature maps. This supports robustness when food is photographed from different viewpoints or with slightly shifted framing.
-
-### Batch normalization
-
-Batch normalization is used in the custom head and is also present throughout InceptionV3. During transfer learning, frozen backbone BatchNorm behaviour must be handled carefully because updating running statistics on a new dataset can destabilise pretrained representations.
-
-### Inception module
-
-Inception-style blocks process visual information at multiple effective receptive fields. This is useful for food images because a single class can contain both small local details, such as grains or toppings, and larger global structures, such as circular pizzas or plated meals.
-
-### Inception factorization
-
-InceptionV3 uses factorised convolutions to reduce computation while preserving representational capacity. This matters for deployment because a model intended for mobile use must balance accuracy, size, and latency.
-
-### InceptionV3 training curves
-
-The retained InceptionV3 experiments show stable transfer-learning behaviour. Validation accuracy improves substantially during training, then begins to plateau, which motivates early stopping and lower learning-rate fine-tuning.
-
-### InceptionV3 confusion heatmap
-
-The confusion heatmap supports per-class error analysis. Food classification errors tend to cluster between visually or semantically related foods rather than being uniformly random.
-
-### EfficientNetV2-S training curves
-
-EfficientNetV2-S was retained as a stronger benchmark comparison. Its saved experiment artifacts show higher validation performance than the InceptionV3 family, although the Android application currently targets an InceptionV3 TFLite asset.
-
-### EfficientNetV2-S confusion heatmap
-
-The EfficientNetV2-S heatmap is useful for comparing whether architecture improvements reduce the same class-confusion patterns or merely improve aggregate accuracy.
 
 ---
 
@@ -295,7 +250,7 @@ The repository contains several retained experiment folders. Metrics below are c
 
 | Model run | Best validation top-1 | Best validation top-5 | Best validation loss | Notes |
 |---|---:|---:|---:|---|
-| `EfficentNetV2S_1.0` | 87.85% | 97.61% | — | Best val acc 84.55%, train acc 75.49% (last epoch) |
+| `EfficentNetV2S_1.0` | 87.86% | 97.66% | 1.4164 | Strongest retained benchmark artifact |
 
 ### Interpretation
 
