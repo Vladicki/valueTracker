@@ -1,5 +1,9 @@
 # ValueTracker: Transfer Learning Food Classification for On-Device Nutrition Tracking
 
+![Training curves](models/food_graphs.svg)
+
+![Confusion heatmap](models/heatmap.svg)
+
 ValueTracker is a machine learning focused Android project for food image recognition and nutrition tracking. The project combines a transfer-learned convolutional neural network trained on Food-101 with a Kotlin Android application that performs local TensorFlow Lite inference from camera or gallery images.
 
 Primary ML goal: build, compare, and deploy a food classifier that can recognise 101 food categories from images and run inside a mobile nutrition workflow.
