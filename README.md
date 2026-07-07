@@ -295,7 +295,7 @@ The repository contains several retained experiment folders. Metrics below are c
 
 | Model run | Best validation top-1 | Best validation top-5 | Best validation loss | Notes |
 |---|---:|---:|---:|---|
-| `EfficentNetV2S_1.0` | 87.86% | 97.66% | 1.4164 | Strongest retained benchmark artifact |
+| `EfficentNetV2S_1.0` | 87.85% | 97.61% | — | Best val acc 84.55%, train acc 75.49% (last epoch) |
 
 ### Interpretation
 
